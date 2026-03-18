@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSC Labs — iOS App Design & Development</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #18181b;
+            --white: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--black);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Grain Overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Grid Pattern */
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.03;
+            background-image:
+                linear-gradient(var(--gray-600) 1px, transparent 1px),
+                linear-gradient(90deg, var(--gray-600) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-800);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 6rem;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 100px;
+            font-size: 0.8125rem;
+            color: var(--gray-300);
+            margin-bottom: 2rem;
+        }
+
+        .hero-badge-dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #fff 0%, #a3a3a3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray-400);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .hero-ctas {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: var(--white);
+            color: var(--black);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--gray-200);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-900);
+            border-color: var(--gray-600);
+        }
+
+        .btn-arrow {
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover .btn-arrow {
+            transform: translateX(4px);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 8rem 0;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            margin-bottom: 3rem;
+        }
+
+        /* Services Section */
+        .services {
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .service-card {
+            padding: 2.5rem;
+            border: 1px solid var(--gray-800);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gray-600), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .service-card:hover {
+            border-color: var(--gray-700);
+            background: var(--gray-900);
+            transform: translateY(-4px);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--gray-800);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--white);
+        }
+
+        .service-number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        .service-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .service-card p {
+            color: var(--gray-400);
+            font-size: 0.9375rem;
+            line-height: 1.7;
+        }
+
+        /* Work Section */
+        .work {
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .work-card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .work-image {
+            aspect-ratio: 4/3;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--gray-800);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            position: relative;
+            background: var(--gray-900);
+        }
+
+        .work-card:hover .work-image {
+            border-color: var(--gray-600);
+            transform: translateY(-4px);
+        }
+
+        /* Collage styles */
+        .collage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .collage-phone {
+            position: absolute;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transition: transform 0.4s ease;
+        }
+
+        .collage-phone img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* MAXXED collage */
+        .collage-maxxed .collage-phone:nth-child(1) {
+            width: 140px;
+            height: 280px;
+            left: 15%;
+            transform: rotate(-6deg);
+            z-index: 1;
+        }
+
+        .collage-maxxed .collage-phone:nth-child(2) {
+            width: 150px;
+            height: 300px;
+            right: 15%;
+            transform: rotate(4deg);
+            z-index: 2;
+        }
+
+        .work-card:hover .collage-maxxed .collage-phone:nth-child(1) {
+            transform: rotate(-8deg) translateX(-5px);
+        }
+
+        .work-card:hover .collage-maxxed .collage-phone:nth-child(2) {
+            transform: rotate(6deg) translateX(5px);
+        }
+
+        /* Ko collage */
+        .collage-ko .collage-phone:nth-child(1) {
+            width: 120px;
+            height: 240px;
+            left: 10%;
+            transform: rotate(-8deg);
+            z-index: 1;
+        }
+
+        .collage-ko .collage-phone:nth-child(2) {
+            width: 150px;
+            height: 300px;
+            z-index: 3;
+        }
+
+        .collage-ko .collage-phone:nth-child(3) {
+            width: 120px;
+            height: 240px;
+            right: 10%;
+            transform: rotate(8deg);
+            z-index: 1;
+        }
+
+        .work-card:hover .collage-ko .collage-phone:nth-child(1) {
+            transform: rotate(-10deg) translateX(-8px);
+        }
+
+        .work-card:hover .collage-ko .collage-phone:nth-child(2) {
+            transform: scale(1.02);
+        }
+
+        .work-card:hover .collage-ko .collage-phone:nth-child(3) {
+            transform: rotate(10deg) translateX(8px);
+        }
+
+        /* Ventr collage */
+        .collage-ventr .collage-phone:nth-child(1) {
+            width: 130px;
+            height: 260px;
+            left: 12%;
+            transform: rotate(-5deg);
+            z-index: 1;
+        }
+
+        .collage-ventr .collage-phone:nth-child(2) {
+            width: 150px;
+            height: 300px;
+            z-index: 3;
+        }
+
+        .collage-ventr .collage-phone:nth-child(3) {
+            width: 130px;
+            height: 260px;
+            right: 12%;
+            transform: rotate(5deg);
+            z-index: 1;
+        }
+
+        .work-card:hover .collage-ventr .collage-phone:nth-child(1) {
+            transform: rotate(-7deg) translateX(-5px);
+        }
+
+        .work-card:hover .collage-ventr .collage-phone:nth-child(2) {
+            transform: scale(1.02);
+        }
+
+        .work-card:hover .collage-ventr .collage-phone:nth-child(3) {
+            transform: rotate(7deg) translateX(5px);
+        }
+
+        /* Brainlock collage */
+        .collage-brainlock .collage-phone:nth-child(1) {
+            width: 120px;
+            height: 240px;
+            left: 10%;
+            transform: rotate(-8deg);
+            z-index: 1;
+        }
+
+        .collage-brainlock .collage-phone:nth-child(2) {
+            width: 150px;
+            height: 300px;
+            z-index: 3;
+        }
+
+        .collage-brainlock .collage-phone:nth-child(3) {
+            width: 120px;
+            height: 240px;
+            right: 10%;
+            transform: rotate(8deg);
+            z-index: 1;
+        }
+
+        .work-card:hover .collage-brainlock .collage-phone:nth-child(1) {
+            transform: rotate(-10deg) translateX(-8px);
+        }
+
+        .work-card:hover .collage-brainlock .collage-phone:nth-child(2) {
+            transform: scale(1.02);
+        }
+
+        .work-card:hover .collage-brainlock .collage-phone:nth-child(3) {
+            transform: rotate(10deg) translateX(8px);
+        }
+
+        @media (max-width: 640px) {
+            .collage-phone {
+                border-radius: 12px;
+            }
+
+            .collage-maxxed .collage-phone:nth-child(1),
+            .collage-ko .collage-phone:nth-child(1),
+            .collage-ventr .collage-phone:nth-child(1),
+            .collage-brainlock .collage-phone:nth-child(1) {
+                width: 80px;
+                height: 160px;
+            }
+
+            .collage-maxxed .collage-phone:nth-child(2),
+            .collage-ko .collage-phone:nth-child(2),
+            .collage-ventr .collage-phone:nth-child(2),
+            .collage-brainlock .collage-phone:nth-child(2) {
+                width: 100px;
+                height: 200px;
+            }
+
+            .collage-ko .collage-phone:nth-child(3),
+            .collage-ventr .collage-phone:nth-child(3),
+            .collage-brainlock .collage-phone:nth-child(3) {
+                width: 80px;
+                height: 160px;
+            }
+        }
+
+        .work-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .work-card p {
+            color: var(--gray-400);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about {
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .about-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        .about-text {
+            font-size: 1.25rem;
+            line-height: 1.9;
+            color: var(--gray-300);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .about-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Contact Section */
+        .contact {
+            border-top: 1px solid var(--gray-800);
+            text-align: center;
+        }
+
+        .contact-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .contact > .container > .contact-content > p {
+            color: var(--gray-400);
+            margin-bottom: 2.5rem;
+        }
+
+        .contact-email {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            color: var(--white);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border: 1px solid var(--gray-700);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .contact-email:hover {
+            border-color: var(--white);
+            background: var(--gray-900);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer p {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--gray-500);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            nav {
+                padding: 1.25rem 2rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .work-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            section {
+                padding: 5rem 0;
+            }
+
+            .hero {
+                padding-top: 8rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.0625rem;
+            }
+
+            .hero-ctas {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .service-card {
+                padding: 2rem;
+            }
+        }
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger children */
+        .reveal-stagger > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-stagger.active > *:nth-child(1) { transition-delay: 0s; opacity: 1; transform: translateY(0); }
+        .reveal-stagger.active > *:nth-child(2) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
+        .reveal-stagger.active > *:nth-child(3) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
+        .reveal-stagger.active > *:nth-child(4) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+
+        /* Hero animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .fade-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .fade-up-delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .fade-up-delay-3 { animation-delay: 0.3s; opacity: 0; }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+
+    <nav>
+        <div class="logo">KSC Labs</div>
+        <ul class="nav-links">
+            <li><a href="#services">Services</a></li>
+            <li><a href="#work">Work</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="fade-up">Idea to App Store in <span class="highlight">Weeks, Not Months</span></h1>
+                    <p class="fade-up fade-up-delay-1">KSC Labs designs, builds, and ships polished iOS apps so you don't have to.</p>
+                    <div class="hero-ctas fade-up fade-up-delay-2">
+                        <a href="#contact" class="btn">
+                            Get a Free Quote
+                            <span class="btn-arrow">&rarr;</span>
+                        </a>
+                        <a href="#work" class="btn btn-secondary">
+                            View Our Work
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services">
+            <div class="container">
+                <p class="section-label reveal">What We Do</p>
+                <div class="services-grid reveal-stagger">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42" />
+                            </svg>
+                        </div>
+                        <p class="service-number">01</p>
+                        <h3>Design</h3>
+                        <p>Clean, intuitive UI/UX designed to convert. From onboarding flows to paywalls, we craft every screen with purpose.</p>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                            </svg>
+                        </div>
+                        <p class="service-number">02</p>
+                        <h3>Development</h3>
+                        <p>Native iOS development built for performance and reliability. Fast execution without sacrificing quality.</p>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                            </svg>
+                        </div>
+                        <p class="service-number">03</p>
+                        <h3>Launch</h3>
+                        <p>App Store submission, payment integration, and optimization handled end to end. You get a live, revenue-ready app.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="work" class="work">
+            <div class="container">
+                <p class="section-label reveal">Our Work</p>
+                <div class="work-grid reveal-stagger">
+                    <a href="#" class="work-card">
+                        <div class="work-image">
+                            <div class="collage collage-maxxed">
+                                <div class="collage-phone">
+                                    <img src="images/maxxed-home.png" alt="MAXXED Home Screen">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/maxxed-exercise.png" alt="MAXXED Exercise Tracking">
+                                </div>
+                            </div>
+                        </div>
+                        <h3>MAXXED</h3>
+                        <p>AI-powered fitness app with personalized workout programming, set tracking, and progressive overload.</p>
+                    </a>
+                    <a href="#" class="work-card">
+                        <div class="work-image">
+                            <div class="collage collage-ko">
+                                <div class="collage-phone">
+                                    <img src="images/ko-calm.png" alt="Ko Breathing">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/ko-home.png" alt="Ko Home Screen">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/ko-sleep.png" alt="Ko Sleep">
+                                </div>
+                            </div>
+                        </div>
+                        <h3>Ko</h3>
+                        <p>Mindfulness companion app featuring guided breathing, soundscapes, and daily calm rituals.</p>
+                    </a>
+                    <a href="#" class="work-card">
+                        <div class="work-image">
+                            <div class="collage collage-ventr">
+                                <div class="collage-phone">
+                                    <img src="images/ventr-itinerary.png" alt="Ventr Itinerary">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/ventr-home.png" alt="Ventr Home Screen">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/ventr-detail.png" alt="Ventr Detail">
+                                </div>
+                            </div>
+                        </div>
+                        <h3>Ventr</h3>
+                        <p>AI travel planner that turns screenshots into full day-by-day itineraries with solo traveler tips.</p>
+                    </a>
+                    <a href="#" class="work-card">
+                        <div class="work-image">
+                            <div class="collage collage-brainlock">
+                                <div class="collage-phone">
+                                    <img src="images/brainlock-setup.png" alt="Brainlock Setup">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/brainlock-lock.png" alt="Brainlock Lock Screen">
+                                </div>
+                                <div class="collage-phone">
+                                    <img src="images/brainlock-results.png" alt="Brainlock Results">
+                                </div>
+                            </div>
+                        </div>
+                        <h3>Brainlock</h3>
+                        <p>Focus app that locks your apps until you submit a photo of completed homework, verified and graded by AI.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about">
+            <div class="container">
+                <div class="about-content">
+                    <h2 class="about-title reveal">Why KSC Labs</h2>
+                    <div class="about-text reveal">
+                        <p>We believe great software starts with great design. At KSC Labs, we prioritize quality and taste in everything we build. Every pixel, every interaction, every detail is intentional.</p>
+                        <p>We don't cut corners and we don't ship half-built prototypes. What you get is a polished, revenue-ready product that looks and feels like it was built by a team of ten.</p>
+                        <p>Full-stack design and development under one roof means fewer handoffs, faster communication, and a final product that stays true to your vision from concept to launch.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact">
+            <div class="container">
+                <div class="contact-content reveal">
+                    <h2>Ready to build?</h2>
+                    <p style="color: var(--gray-400); margin-bottom: 2.5rem;">Tell us about your project.</p>
+                    <a href="mailto:hello@ksclabs.com" class="contact-email">
+                        hello@ksclabs.com
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2026 KSC Labs. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="https://twitter.com" target="_blank">Twitter</a>
+                    <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll reveal animation
+        const reveals = document.querySelectorAll('.reveal, .reveal-stagger');
+
+        const revealOnScroll = () => {
+            reveals.forEach(el => {
+                const windowHeight = window.innerHeight;
+                const elementTop = el.getBoundingClientRect().top;
+                const revealPoint = 100;
+
+                if (elementTop < windowHeight - revealPoint) {
+                    el.classList.add('active');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', revealOnScroll);
+        window.addEventListener('load', revealOnScroll);
+    </script>
+</body>
+</html>
